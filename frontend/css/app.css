@@ -1,0 +1,13 @@
+.fas {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .fas.fa-edit:hover {
+    color: #007bff;
+  }
+  
+  .fas.fa-trash-alt:hover {
+    color: #dc3545;
+  }
+  

@@ -116,34 +116,55 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Add record
-  document.querySelector("#add-form").addEventListener("submit", (e) => {
-    e.preventDefault();
+  // Add record with validation handling
+document.querySelector("#add-form").addEventListener("submit", (e) => {
+  e.preventDefault();
 
-    const type = document.querySelector("#type").value;
-    const transaction_date = document.querySelector("#transaction_date").value;
-    const description = document.querySelector("#description").value;
-    const amount = document.querySelector("#amount").value;
+  const type = document.querySelector("#type").value;
+  const transaction_date = document.querySelector("#transaction_date").value;
+  const description = document.querySelector("#description").value;
+  const amount = document.querySelector("#amount").value;
 
-    const newRecord = { type, transaction_date, description, amount };
+  const newRecord = { type, transaction_date, description, amount };
 
-    fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newRecord),
+  // Clear previous error messages
+  document.querySelectorAll(".error-message").forEach((el) => el.remove());
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newRecord),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((errorData) => {
+          throw errorData; // Throw error data to handle it in the catch block
+        });
+      }
+      Swal.fire("Success!", "Record added successfully.", "success");
+      $("#add-modal").modal("hide");
+      loadRecords();
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to add record.");
+    .catch((err) => {
+      console.error("Error adding record:", err);
+
+      // Handle validation errors
+      if (err.errors) {
+        for (const [field, messages] of Object.entries(err.errors)) {
+          const fieldElement = document.querySelector(`#${field}`);
+          if (fieldElement) {
+            const errorDiv = document.createElement("div");
+            errorDiv.classList.add("error-message", "text-danger");
+            errorDiv.textContent = messages.join(", ");
+            fieldElement.parentElement.appendChild(errorDiv);
+          }
         }
-        Swal.fire("Success!", "Record added successfully.", "success");
-        $("#add-modal").modal("hide");
-        loadRecords();
-      })
-      .catch((err) => {
-        console.error("Error adding record:", err);
+      } else {
         Swal.fire("Error!", "Failed to add the record.", "error");
-      });
-  });
+      }
+    });
+});
+
 
   // Generate PDF
   async function generatePDF() {
